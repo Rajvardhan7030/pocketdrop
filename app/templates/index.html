@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PocketDrop — Local File &amp; Text Sharing</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <h1 class="logo">Pocket<span>Drop</span></h1>
+            <div id="connection-status" class="status-badge checking" aria-live="polite">
+                Connecting...
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- System Banner -->
+        <section class="banner" id="system-banner" aria-label="System Notice">
+            <p><strong>Local LAN:</strong> Transfers happen directly over your home Wi-Fi. No internet or cloud required.</p>
+        </section>
+
+        <!-- Send Files Section -->
+        <section class="card" id="upload-card">
+            <h2>Send to PC</h2>
+            <div class="drop-zone" id="drop-zone" tabindex="0" role="button" aria-label="Choose files or drop them here">
+                <div class="drop-icon">&#8679;</div>
+                <p>Tap here to select files or drag &amp; drop</p>
+                <input type="file" id="file-input" multiple class="visually-hidden">
+            </div>
+            <div id="upload-queue" class="queue-list" aria-live="polite"></div>
+        </section>
+
+        <!-- Text Inbox Section -->
+        <section class="card" id="text-card">
+            <h2>Quick Text Transfer</h2>
+            <form id="text-form" class="text-form">
+                <textarea id="text-input" placeholder="Type or paste text/notes to send..." maxlength="10000" rows="3" aria-label="Text to send"></textarea>
+                <button type="submit" id="send-text-btn" class="btn btn-primary">Send Text</button>
+            </form>
+            <div id="text-inbox" class="text-inbox-list" aria-live="polite">
+                <p class="empty-state">No text snippets yet.</p>
+            </div>
+        </section>
+
+        <!-- Shared Files Section -->
+        <section class="card" id="files-card">
+            <div class="section-header">
+                <h2>Shared Files</h2>
+                <button id="refresh-files-btn" class="btn btn-sm btn-secondary">Refresh</button>
+            </div>
+            <div id="files-list" class="files-list" aria-live="polite">
+                <p class="empty-state">No shared files yet.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>PocketDrop &bull; Local-first &bull; Fedora Linux PC</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

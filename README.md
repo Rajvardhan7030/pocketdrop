@@ -35,11 +35,42 @@ pytest -v
 
 ### 3. Running the Development Server
 
+Start the server using Python (it automatically binds to your active Wi-Fi IP):
+
 ```bash
 source .venv/bin/activate
-python3 -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+python3 -m app.main
 ```
-*(Launcher script `run.sh` with automatic Wi-Fi IP detection is provided in Phase 5).*
+
+Or specify custom parameters if needed:
+```bash
+python3 -m app.main --port 8080
+python3 -m app.main --host 127.0.0.1  # Localhost only (not accessible to phone)
+```
+
+### 4. Fedora Linux Firewall Instructions
+
+On Fedora Linux, `firewalld` is active by default and blocks incoming connections to non-standard ports. To allow other devices on your home Wi-Fi to access PocketDrop on port 8000:
+
+**Allow access temporarily (resets on reboot or firewall reload):**
+```bash
+sudo firewall-cmd --add-port=8000/tcp
+```
+
+**To remove the rule manually when finished:**
+```bash
+sudo firewall-cmd --remove-port=8000/tcp
+```
+
+> **Note:** PocketDrop does not modify firewall rules automatically to preserve system security. You retain complete manual control over open ports.
+
+### 5. Troubleshooting Network Connectivity
+
+- **Cannot open page on phone:**
+  1. Confirm your phone is connected to the exact same Wi-Fi network as the PC.
+  2. Verify your Wi-Fi router does not have **Client Isolation** (or AP Isolation) enabled. Client isolation prevents devices on Wi-Fi from communicating directly with each other.
+  3. Ensure the firewall rule above was applied if running Fedora Linux.
+
 
 ## Documentation
 
