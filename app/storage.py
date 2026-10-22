@@ -89,7 +89,6 @@ class StorageService:
     def __init__(self, storage_dir: Optional[Path] = None):
         self.storage_dir = (storage_dir or settings.STORAGE_DIR).resolve()
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        init_db()
 
     def get_current_total_storage(self) -> int:
         """Calculate total bytes occupied by stored files recorded in SQLite."""

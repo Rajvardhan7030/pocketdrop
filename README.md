@@ -78,10 +78,70 @@ sudo firewall-cmd --remove-port=8000/tcp
   2. Verify your Wi-Fi router does not have **Client Isolation** (or AP Isolation) enabled. Client isolation prevents devices on Wi-Fi from communicating directly with each other.
   3. Ensure the firewall rule above was applied if running Fedora Linux.
 
+---
 
-## Documentation
+## Complete Demo Flow & Walkthrough
 
-Full project specifications and roadmaps are located in [`.doc/`](.doc/):
+```text
++---------------------------------------------------------------+
+|                      PocketDrop Dashboard                     |
+|                                                      [Online] |
++---------------------------------------------------------------+
+| [1] Device Pairing                                            |
+|     [ Enter 6-digit PIN ]  [ Connect Device ]                 |
++---------------------------------------------------------------+
+| [2] Send to PC                                                |
+|     +-------------------------------------------------------+ |
+|     |  Tap here to select files or drag & drop              | |
+|     +-------------------------------------------------------+ |
+|     [████████████████████░░░░░░░] 75% photo.jpg               |
++---------------------------------------------------------------+
+| [3] Quick Text Transfer                                       |
+|     [ Type or paste notes / links...                      ]   |
+|     [ Send Text ]                                             |
+|     - "Wi-Fi password: ..."  [ Copy ]  [ Delete ]             |
++---------------------------------------------------------------+
+| [4] Shared Files                                              |
+|     * report.pdf (1.2 MB)    [ Download ]  [ Delete ]         |
+|     * presentation.zip       [ Download ]  [ Delete ]         |
++---------------------------------------------------------------+
+```
+
+### 1. Starting the Service on PC
+Execute `./run.sh` in your terminal. PocketDrop displays the bound Wi-Fi URL, an ASCII QR Code, and a 6-digit Pairing PIN:
+```text
+=======================================================
+  PocketDrop — Local File & Text Sharing
+=======================================================
+  Bound Interface: wlp0s26u1u3 (172.29.181.175)
+  Access URL:      http://172.29.181.175:8000
+  Pairing PIN:     808403
+=======================================================
+```
+
+### 2. Pairing Your Phone
+1. Open your phone camera and scan the terminal QR code (or type the URL into your phone's browser).
+2. Enter the 6-digit Pairing PIN shown on the PC terminal and tap **Connect Device**.
+3. A secure session cookie (`pocketdrop_session`) is established.
+
+### 3. Transferring Files & Photos (Phone to PC)
+1. Tap the **Send to PC** drop zone on your phone.
+2. Select one or more photos, videos, PDFs, or documents.
+3. Real-time progress bars reflect chunked streaming to the PC storage directory.
+
+### 4. Downloading Files (PC or Phone)
+1. In the **Shared Files** list, tap **Download** next to any item.
+2. Files are downloaded with safe attachment headers, preserving the original file bit-for-bit.
+
+### 5. Instant Text / Clipboard Sharing
+1. Type or paste links, passwords, or code snippets into the **Quick Text Transfer** field and click **Send Text**.
+2. On the other device, tap **Copy** to immediately copy the snippet to your device's clipboard (with automatic fallback on non-HTTPS LAN connections).
+
+---
+
+## Documentation & Security
+
+- [`SECURITY.md`](SECURITY.md): Threat model, security matrix, and mandatory control checklist.
 - [`architecture.md`](.doc/architecture.md): Architectural design, security rules, and data model.
 - [`roadmap.md`](.doc/roadmap.md): Phased development milestones and acceptance criteria.
 - [`prompt.md`](.doc/prompt.md): Engineering standards and constraints.

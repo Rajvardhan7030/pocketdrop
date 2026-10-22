@@ -16,9 +16,10 @@ def get_db_path() -> Path:
 def init_db(db_path: Path = None) -> None:
     """Initialize SQLite tables and indexes."""
     target_path = db_path or get_db_path()
-    with sqlite3.connect(target_path) as conn:
+    with sqlite3.connect(target_path, timeout=30.0) as conn:
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA foreign_keys=ON;")
+        conn.execute("PRAGMA busy_timeout=30000;")
         
         # Files metadata table
         conn.execute("""
@@ -52,7 +53,8 @@ def get_db(db_path: Path = None) -> Generator[sqlite3.Connection, None, None]:
     target_path = db_path or get_db_path()
     if not target_path.exists():
         init_db(target_path)
-    conn = sqlite3.connect(target_path, timeout=10.0)
+    conn = sqlite3.connect(target_path, timeout=30.0)
+    conn.execute("PRAGMA busy_timeout=30000;")
     conn.row_factory = sqlite3.Row
     try:
         yield conn

@@ -101,3 +101,84 @@ def test_persistence_across_service_restarts(auth_headers, tmp_path, monkeypatch
     text_res = fresh_client.get("/api/text", headers=auth_headers)
     assert text_res.status_code == 200
     assert any(m["content"] == "snippet preserved across restart" for m in text_res.json()["messages"])
+
+
+def test_transfer_video_file(auth_headers, tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "STORAGE_DIR", tmp_path / "storage")
+    monkeypatch.setattr(settings, "DB_PATH", tmp_path / "test.db")
+
+    # Simulated MP4 container header + binary stream
+    mp4_header = b"\x00\x00\x00 ftypisom\x00\x00\x02\x00isomiso2avc1mp41"
+    video_bytes = mp4_header + (b"\x12\x34\x56\x78" * 50000)  # ~200 KB
+    expected_hash = hashlib.sha256(video_bytes).hexdigest()
+
+    up_res = client.post(
+        "/api/uploads",
+        files={"files": ("clip.mp4", io.BytesIO(video_bytes), "video/mp4")},
+        headers=auth_headers
+    )
+    assert up_res.status_code == 200
+    file_id = up_res.json()["uploaded"][0]["id"]
+
+    down_res = client.get(f"/api/files/{file_id}", headers=auth_headers)
+    assert down_res.status_code == 200
+    assert down_res.content == video_bytes
+    assert hashlib.sha256(down_res.content).hexdigest() == expected_hash
+    assert "attachment" in down_res.headers["content-disposition"]
+
+
+def test_concurrent_uploads(auth_headers, tmp_path, monkeypatch):
+    import concurrent.futures
+    from app.db import init_db
+
+    monkeypatch.setattr(settings, "STORAGE_DIR", tmp_path / "storage")
+    monkeypatch.setattr(settings, "DB_PATH", tmp_path / "test.db")
+    init_db(tmp_path / "test.db")
+
+    def upload_worker(index):
+        worker_client = TestClient(app)
+        data = f"concurrent worker payload {index}".encode("utf-8")
+        res = worker_client.post(
+            "/api/uploads",
+            files={"files": (f"worker_{index}.txt", io.BytesIO(data), "text/plain")},
+            headers=auth_headers
+        )
+        return res.status_code, res.json()["uploaded"][0]["id"]
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(upload_worker, i) for i in range(4)]
+        results = [f.result() for f in futures]
+
+    assert all(code == 200 for code, _ in results)
+    uploaded_ids = [uid for _, uid in results]
+    assert len(set(uploaded_ids)) == 4
+
+
+@pytest.mark.anyio
+async def test_interrupted_upload_cleans_up_temp_file(tmp_path, monkeypatch):
+    from starlette.datastructures import UploadFile
+    from app.storage import StorageService
+
+    monkeypatch.setattr(settings, "STORAGE_DIR", tmp_path / "storage")
+    monkeypatch.setattr(settings, "DB_PATH", tmp_path / "test.db")
+    service = StorageService(storage_dir=tmp_path / "storage")
+
+    class FaultyStream:
+        def __init__(self):
+            self.calls = 0
+
+        def read(self, chunk_size=-1):
+            self.calls += 1
+            if self.calls == 1:
+                return b"First chunk succeeds"
+            raise ConnectionResetError("Client disconnected unexpectedly")
+
+    faulty_file = UploadFile(file=FaultyStream(), filename="interrupted.dat")
+
+    with pytest.raises(ConnectionResetError):
+        await service.save_upload(faulty_file)
+
+    # Verify no dangling temporary files remain
+    temp_files = list((tmp_path / "storage").glob(".tmp_*"))
+    assert temp_files == []
+
