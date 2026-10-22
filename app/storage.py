@@ -71,8 +71,16 @@ def sanitize_filename(raw_name: Optional[str]) -> str:
     if not name:
         return "unnamed_file"
 
-    # Cap display length to 255 characters
-    return name[:255]
+    # Cap display length to 255 characters while preserving extension if present
+    if len(name) > 255:
+        stem, ext = os.path.splitext(name)
+        if ext and len(ext) < 32:
+            max_stem = 255 - len(ext)
+            name = stem[:max_stem] + ext
+        else:
+            name = name[:255]
+
+    return name
 
 
 class StorageService:
