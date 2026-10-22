@@ -11,6 +11,9 @@ from fastapi.staticfiles import StaticFiles
 from app import __version__
 from app.config import settings
 from app.network import NetworkError, ensure_port_available, resolve_bind_ip
+from app.routes.auth import router as auth_router
+from app.routes.files import router as files_router
+from app.security import get_or_create_auth_token
 
 # Configure logging
 logging.basicConfig(
@@ -39,6 +42,11 @@ settings.ensure_directories()
 # Mount static assets (CSS, JS) — explicitly isolated from data/storage
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+# Register API routers
+app.include_router(auth_router)
+app.include_router(files_router)
 
 
 @app.get("/", summary="Dashboard interface")
@@ -110,14 +118,17 @@ def main():
         sys.exit(1)
 
     # Print startup banner
+    pin = get_or_create_auth_token()
     url = f"http://{bind_host}:{port}"
     print("\n" + "=" * 55)
     print("  PocketDrop — Local File & Text Sharing")
     print("=" * 55)
     print(f"  Bound Interface: {iface_name} ({bind_host})")
     print(f"  Access URL:      {url}")
+    print(f"  Pairing PIN:     {pin}")
     print("=" * 55)
     print("  Open the Access URL in your phone or PC browser.")
+    print("  Enter the Pairing PIN to authorize your device.")
     print("  Both devices must be connected to the same home Wi-Fi.")
     print("  Press Ctrl+C to stop the server at any time.")
     print("=" * 55 + "\n")

@@ -17,6 +17,17 @@
     </header>
 
     <main class="container">
+        <!-- Pairing Card -->
+        <section class="card" id="pairing-card">
+            <h2>Device Pairing</h2>
+            <p class="card-subtitle">Enter the 6-digit Pairing PIN shown in your PC terminal to authorize this device.</p>
+            <form id="pairing-form" class="pairing-form">
+                <input type="text" id="pairing-pin" placeholder="Enter PIN" inputmode="numeric" maxlength="32" autocomplete="off" required>
+                <button type="submit" id="pair-btn" class="btn btn-primary">Connect Device</button>
+            </form>
+            <div id="pairing-error" class="error-msg visually-hidden" role="alert"></div>
+        </section>
+
         <!-- System Banner -->
         <section class="banner" id="system-banner" aria-label="System Notice">
             <p><strong>Local LAN:</strong> Transfers happen directly over your home Wi-Fi. No internet or cloud required.</p>
