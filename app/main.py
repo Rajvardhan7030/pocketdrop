@@ -13,6 +13,7 @@ from app.config import settings
 from app.network import NetworkError, ensure_port_available, resolve_bind_ip
 from app.routes.auth import router as auth_router
 from app.routes.files import router as files_router
+from app.routes.text import router as text_router
 from app.security import get_or_create_auth_token
 
 # Configure logging
@@ -47,6 +48,7 @@ if STATIC_DIR.exists():
 # Register API routers
 app.include_router(auth_router)
 app.include_router(files_router)
+app.include_router(text_router)
 
 
 @app.get("/", summary="Dashboard interface")

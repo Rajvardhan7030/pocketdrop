@@ -46,7 +46,10 @@
 
         <!-- Text Inbox Section -->
         <section class="card" id="text-card">
-            <h2>Quick Text Transfer</h2>
+            <div class="section-header">
+                <h2>Quick Text Transfer</h2>
+                <button id="refresh-text-btn" type="button" class="btn btn-sm btn-secondary">Refresh</button>
+            </div>
             <form id="text-form" class="text-form">
                 <textarea id="text-input" placeholder="Type or paste text/notes to send..." maxlength="10000" rows="3" aria-label="Text to send"></textarea>
                 <button type="submit" id="send-text-btn" class="btn btn-primary">Send Text</button>

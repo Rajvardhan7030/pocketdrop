@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const refreshFilesBtn = document.getElementById("refresh-files-btn");
     const filesList = document.getElementById("files-list");
 
+    const textForm = document.getElementById("text-form");
+    const textInput = document.getElementById("text-input");
+    const textInbox = document.getElementById("text-inbox");
+    const refreshTextBtn = document.getElementById("refresh-text-btn");
+
     // State
     let csrfToken = null;
     let isAuthenticated = false;
@@ -47,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isAuthenticated) {
             pairingCard.style.display = "none";
             loadFiles();
+            loadTexts();
         } else {
             pairingCard.style.display = "block";
             filesList.innerHTML = "";
@@ -54,6 +60,12 @@ document.addEventListener("DOMContentLoaded", () => {
             p.className = "empty-state";
             p.textContent = "Please pair your device to view shared files.";
             filesList.appendChild(p);
+
+            textInbox.innerHTML = "";
+            const pText = document.createElement("p");
+            pText.className = "empty-state";
+            pText.textContent = "Please pair your device to send and view text.";
+            textInbox.appendChild(pText);
         }
     }
 
@@ -135,13 +147,11 @@ document.addEventListener("DOMContentLoaded", () => {
             await uploadSingleFile(files[i]);
         }
 
-        // Refresh file list after upload batch
         loadFiles();
     }
 
     function uploadSingleFile(file) {
         return new Promise((resolve) => {
-            // Create progress elements safely via DOM methods
             const progressItem = document.createElement("div");
             progressItem.className = "progress-item";
 
@@ -229,9 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch("/api/files");
             if (!res.ok) {
-                if (res.status === 401) {
-                    setAuthenticated(false);
-                }
+                if (res.status === 401) setAuthenticated(false);
                 return;
             }
 
@@ -255,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const nameDiv = document.createElement("div");
                 nameDiv.className = "file-name";
-                nameDiv.textContent = file.filename; // XSS-safe
+                nameDiv.textContent = file.filename;
 
                 const metaDiv = document.createElement("div");
                 metaDiv.className = "file-details";
@@ -315,6 +323,167 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Copy text with graceful clipboard fallback
+    async function copyToClipboard(text, btnElement) {
+        let success = false;
+        // 1. Try modern navigator.clipboard if available
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(text);
+                success = true;
+            } catch {}
+        }
+
+        // 2. Fallback for plain HTTP / unsupported mobile browsers
+        if (!success) {
+            try {
+                const ta = document.createElement("textarea");
+                ta.value = text;
+                ta.style.position = "fixed";
+                ta.style.left = "-9999px";
+                ta.style.top = "0";
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                success = document.execCommand("copy");
+                document.body.removeChild(ta);
+            } catch {}
+        }
+
+        if (success) {
+            const orig = btnElement.textContent;
+            btnElement.textContent = "Copied!";
+            setTimeout(() => { btnElement.textContent = orig; }, 1500);
+        } else {
+            prompt("Copy snippet manually:", text);
+        }
+    }
+
+    // Load and render text snippets
+    async function loadTexts() {
+        if (!isAuthenticated) return;
+
+        try {
+            const res = await fetch("/api/text");
+            if (!res.ok) {
+                if (res.status === 401) setAuthenticated(false);
+                return;
+            }
+
+            const data = await res.json();
+            textInbox.innerHTML = "";
+
+            if (!data.messages || data.messages.length === 0) {
+                const empty = document.createElement("p");
+                empty.className = "empty-state";
+                empty.textContent = "No text snippets yet.";
+                textInbox.appendChild(empty);
+                return;
+            }
+
+            data.messages.forEach((msg) => {
+                const item = document.createElement("div");
+                item.className = "text-item";
+
+                const header = document.createElement("div");
+                header.className = "text-header";
+
+                const timeSpan = document.createElement("span");
+                timeSpan.textContent = formatDate(msg.created_at);
+
+                const actions = document.createElement("div");
+                actions.className = "text-actions";
+
+                const copyBtn = document.createElement("button");
+                copyBtn.type = "button";
+                copyBtn.className = "btn btn-sm btn-secondary";
+                copyBtn.textContent = "Copy";
+                copyBtn.addEventListener("click", () => copyToClipboard(msg.content, copyBtn));
+
+                const delBtn = document.createElement("button");
+                delBtn.type = "button";
+                delBtn.className = "btn btn-sm btn-danger";
+                delBtn.textContent = "Delete";
+                delBtn.addEventListener("click", () => handleDeleteText(msg.id));
+
+                actions.appendChild(copyBtn);
+                actions.appendChild(delBtn);
+
+                header.appendChild(timeSpan);
+                header.appendChild(actions);
+
+                const contentPre = document.createElement("pre");
+                contentPre.className = "text-content";
+                contentPre.textContent = msg.content; // Strict text rendering, safe against XSS
+
+                item.appendChild(header);
+                item.appendChild(contentPre);
+                textInbox.appendChild(item);
+            });
+        } catch (err) {
+            console.error("Failed to load text messages:", err);
+        }
+    }
+
+    // Delete text snippet
+    async function handleDeleteText(textId) {
+        if (!confirm("Are you sure you want to delete this text snippet?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/text/${encodeURIComponent(textId)}`, {
+                method: "DELETE",
+                headers: {
+                    ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {})
+                }
+            });
+
+            if (res.ok) {
+                loadTexts();
+            } else {
+                alert("Failed to delete text snippet.");
+            }
+        } catch {
+            alert("Network error while deleting text snippet.");
+        }
+    }
+
+    // Handle text submission
+    if (textForm && textInput) {
+        textForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (!isAuthenticated) {
+                alert("Please pair your device before sending text.");
+                return;
+            }
+
+            const content = textInput.value;
+            if (!content.trim()) return;
+
+            try {
+                const res = await fetch("/api/text", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {})
+                    },
+                    body: JSON.stringify({ content })
+                });
+
+                if (res.ok) {
+                    textInput.value = "";
+                    loadTexts();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.detail || "Failed to send text snippet.");
+                }
+            } catch {
+                alert("Network error while sending text.");
+            }
+        });
+    }
+
     // Drop zone events
     if (dropZone && fileInput) {
         dropZone.addEventListener("click", () => fileInput.click());
@@ -355,6 +524,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (refreshFilesBtn) {
         refreshFilesBtn.addEventListener("click", loadFiles);
+    }
+
+    if (refreshTextBtn) {
+        refreshTextBtn.addEventListener("click", loadTexts);
     }
 
     // Initialization
