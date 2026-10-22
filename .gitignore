@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# PocketDrop runtime data
+data/
+*.db
+*.sqlite3
+
+# Logs and environment
+*.log
+.env
+
+# System & IDE files
+.DS_Store
+.idea/
+.vscode/
