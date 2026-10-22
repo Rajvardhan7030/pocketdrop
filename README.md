@@ -33,19 +33,26 @@ source .venv/bin/activate
 pytest -v
 ```
 
-### 3. Running the Development Server
+### 3. Starting the Server
 
-Start the server using Python (it automatically binds to your active Wi-Fi IP):
+The easiest way to start PocketDrop is with the included launcher:
 
 ```bash
-source .venv/bin/activate
-python3 -m app.main
+./run.sh
 ```
 
-Or specify custom parameters if needed:
+The launcher will:
+- Automatically activate `.venv` (and create it from `requirements.txt` if needed).
+- Detect your active Wi-Fi IPv4 address (e.g. `172.29.181.175`).
+- Display an **ASCII QR Code** in the terminal for instant phone camera scanning.
+- Display the **Access URL** and a 6-digit **Pairing PIN**.
+- Stop cleanly whenever you press `Ctrl+C`.
+
+**Optional Flags:**
 ```bash
-python3 -m app.main --port 8080
-python3 -m app.main --host 127.0.0.1  # Localhost only (not accessible to phone)
+./run.sh --port 8080       # Custom port override
+./run.sh --host 127.0.0.1  # Localhost only (isolated PC testing)
+./run.sh --no-qr           # Suppress terminal QR code output
 ```
 
 ### 4. Fedora Linux Firewall Instructions

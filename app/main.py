@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from app import __version__
 from app.config import settings
 from app.network import NetworkError, ensure_port_available, resolve_bind_ip
+from app.qr import print_terminal_qr
 from app.routes.auth import router as auth_router
 from app.routes.files import router as files_router
 from app.routes.text import router as text_router
@@ -97,6 +98,11 @@ def main():
         default=None,
         help="Preferred network interface name (e.g. wlan0, wlp0s26u1u3)."
     )
+    parser.add_argument(
+        "--no-qr",
+        action="store_true",
+        help="Disable printing the terminal QR code."
+    )
     args = parser.parse_args()
 
     # Determine port
@@ -133,7 +139,10 @@ def main():
     print("  Enter the Pairing PIN to authorize your device.")
     print("  Both devices must be connected to the same home Wi-Fi.")
     print("  Press Ctrl+C to stop the server at any time.")
-    print("=" * 55 + "\n")
+    print("=" * 55)
+
+    if not args.no_qr:
+        print_terminal_qr(url)
 
     import uvicorn
     try:

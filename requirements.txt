@@ -2,6 +2,7 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 python-multipart>=0.0.12
+segno>=1.6.0
 
 # Testing Dependencies
 pytest>=8.3.0
