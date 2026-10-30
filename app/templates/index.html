@@ -22,7 +22,7 @@
             <h2>Device Pairing</h2>
             <p class="card-subtitle">Enter the 6-digit Pairing PIN shown in your PC terminal to authorize this device.</p>
             <form id="pairing-form" class="pairing-form">
-                <input type="text" id="pairing-pin" placeholder="Enter PIN" inputmode="numeric" maxlength="32" autocomplete="off" required>
+                <input type="text" id="pairing-pin" placeholder="Enter 6-digit PIN" inputmode="numeric" maxlength="32" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" required>
                 <button type="submit" id="pair-btn" class="btn btn-primary">Connect Device</button>
             </form>
             <div id="pairing-error" class="error-msg visually-hidden" role="alert"></div>

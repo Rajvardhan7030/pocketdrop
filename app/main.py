@@ -99,6 +99,18 @@ def main():
         help="Preferred network interface name (e.g. wlan0, wlp0s26u1u3)."
     )
     parser.add_argument(
+        "--pin", "--token",
+        dest="pin",
+        type=str,
+        default=None,
+        help="Specify a custom 6-digit pairing PIN or master token."
+    )
+    parser.add_argument(
+        "--new-pin",
+        action="store_true",
+        help="Generate a fresh pairing PIN on startup instead of reusing previous one."
+    )
+    parser.add_argument(
         "--no-qr",
         action="store_true",
         help="Disable printing the terminal QR code."
@@ -125,24 +137,40 @@ def main():
         logger.error("Port conflict error:\n%s", err)
         sys.exit(1)
 
+    # Determine auth token / pairing PIN
+    if args.pin:
+        pin = get_or_create_auth_token(custom_token=args.pin)
+    elif args.new_pin:
+        pin = get_or_create_auth_token(force_new=True)
+    else:
+        pin = get_or_create_auth_token()
+
     # Print startup banner
-    pin = get_or_create_auth_token()
     url = f"http://{bind_host}:{port}"
-    print("\n" + "=" * 55)
-    print("  PocketDrop — Local File & Text Sharing")
-    print("=" * 55)
-    print(f"  Bound Interface: {iface_name} ({bind_host})")
-    print(f"  Access URL:      {url}")
-    print(f"  Pairing PIN:     {pin}")
-    print("=" * 55)
-    print("  Open the Access URL in your phone or PC browser.")
-    print("  Enter the Pairing PIN to authorize your device.")
-    print("  Both devices must be connected to the same home Wi-Fi.")
-    print("  Press Ctrl+C to stop the server at any time.")
-    print("=" * 55)
+    qr_url = f"http://{bind_host}:{port}/?pin={pin}"
+
+    print("\n" + "=" * 55, flush=True)
+    print("  PocketDrop — Local File & Text Sharing", flush=True)
+    print("=" * 55, flush=True)
+    print(f"  Bound Interface: {iface_name} ({bind_host})", flush=True)
+    print(f"  Access URL:      {url}", flush=True)
+    print(f"  Pairing PIN:     {pin}", flush=True)
+    print("=" * 55, flush=True)
 
     if not args.no_qr:
-        print_terminal_qr(url)
+        print_terminal_qr(qr_url)
+
+    # Re-print access info after QR so it remains visible without scrolling
+    print("=" * 55, flush=True)
+    print(f"  Access URL:      {url}", flush=True)
+    print(f"  Pairing PIN:     {pin}", flush=True)
+    print("=" * 55, flush=True)
+    print("  Open the Access URL in your phone or PC browser.", flush=True)
+    print("  Enter the Pairing PIN above to authorize your device.", flush=True)
+    print("  (Tip: Phone camera scanning the QR code connects automatically!)", flush=True)
+    print("  Both devices must be connected to the same home Wi-Fi.", flush=True)
+    print("  Press Ctrl+C to stop the server at any time.", flush=True)
+    print("=" * 55 + "\n", flush=True)
 
     import uvicorn
     try:

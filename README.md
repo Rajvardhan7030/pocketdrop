@@ -52,6 +52,8 @@ The launcher will:
 ```bash
 ./run.sh --port 8080       # Custom port override
 ./run.sh --host 127.0.0.1  # Localhost only (isolated PC testing)
+./run.sh --pin 123456      # Set a specific 6-digit PIN or custom token
+./run.sh --new-pin         # Force generate a fresh pairing PIN
 ./run.sh --no-qr           # Suppress terminal QR code output
 ```
 
@@ -145,3 +147,4 @@ Execute `./run.sh` in your terminal. PocketDrop displays the bound Wi-Fi URL, an
 - [`architecture.md`](.doc/architecture.md): Architectural design, security rules, and data model.
 - [`roadmap.md`](.doc/roadmap.md): Phased development milestones and acceptance criteria.
 - [`prompt.md`](.doc/prompt.md): Engineering standards and constraints.
+

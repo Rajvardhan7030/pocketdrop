@@ -19,21 +19,40 @@ SESSION_TTL_SECONDS = 86400 * 7  # 7 days
 _active_auth_token: Optional[str] = None
 
 
-def get_or_create_auth_token() -> str:
+def normalize_pin(val: Optional[str]) -> str:
+    """
+    Normalize PIN or token for tolerant matching.
+    Strips leading/trailing whitespace, and strips internal spaces/hyphens for numeric PINs.
+    """
+    if not val:
+        return ""
+    cleaned = val.strip()
+    digits_only = cleaned.replace(" ", "").replace("-", "")
+    if digits_only.isdigit():
+        return digits_only
+    return cleaned
+
+
+def get_or_create_auth_token(force_new: bool = False, custom_token: Optional[str] = None) -> str:
     """
     Retrieve or generate the master pairing token.
-    Uses POCKETDROP_AUTH_TOKEN if configured; otherwise generates a secure 6-digit PIN.
+    Uses custom_token or POCKETDROP_AUTH_TOKEN if configured; otherwise generates a secure 6-digit PIN.
+    If force_new is True, generates a fresh PIN and overwrites existing token.
     """
     global _active_auth_token
-    if settings.AUTH_TOKEN:
+    if custom_token:
+        _active_auth_token = custom_token.strip()
+        return _active_auth_token
+
+    if settings.AUTH_TOKEN and not force_new:
         return settings.AUTH_TOKEN
 
-    if _active_auth_token is not None:
+    if not force_new and _active_auth_token is not None:
         return _active_auth_token
 
     # Check if previously saved in data directory
     token_file = settings.DATA_DIR / ".auth_token"
-    if token_file.exists():
+    if not force_new and token_file.exists():
         try:
             token = token_file.read_text(encoding="utf-8").strip()
             if token:
@@ -90,9 +109,13 @@ def revoke_session(session_id: str) -> None:
 
 
 def verify_pairing_token(candidate: str) -> bool:
-    """Constant-time comparison against master pairing token."""
+    """Constant-time comparison against master pairing token with space/hyphen normalization."""
     master = get_or_create_auth_token()
-    return secrets.compare_digest(candidate.strip(), master.strip())
+    clean_candidate = normalize_pin(candidate)
+    clean_master = normalize_pin(master)
+    if not clean_candidate or not clean_master:
+        return False
+    return secrets.compare_digest(clean_candidate, clean_master)
 
 
 async def require_auth(request: Request) -> None:

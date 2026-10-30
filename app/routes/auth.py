@@ -29,7 +29,7 @@ async def pair_device(req: PairRequest, response: Response):
     if not candidate or not verify_pairing_token(candidate):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid pairing PIN or token."
+            detail="Invalid pairing PIN or token. Please enter the 6-digit PIN shown in your PC terminal."
         )
 
     session_id, csrf_token = create_session()

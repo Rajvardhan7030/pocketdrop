@@ -17,8 +17,30 @@ client = TestClient(app)
 def test_pairing_token_verification():
     token = get_or_create_auth_token()
     assert verify_pairing_token(token) is True
+    # Test spaces and hyphens commonly entered on mobile
+    if token.isdigit() and len(token) == 6:
+        spaced = f"{token[:3]} {token[3:]}"
+        hyphenated = f"{token[:3]}-{token[3:]}"
+        padded = f"  {token}  "
+        assert verify_pairing_token(spaced) is True
+        assert verify_pairing_token(hyphenated) is True
+        assert verify_pairing_token(padded) is True
+
     assert verify_pairing_token("wrong-pin") is False
     assert verify_pairing_token("") is False
+
+
+def test_custom_token_and_force_new(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "DATA_DIR", tmp_path / "data")
+    custom = get_or_create_auth_token(custom_token="my-secret-pin-123")
+    assert custom == "my-secret-pin-123"
+    assert verify_pairing_token("my-secret-pin-123") is True
+
+    # Force new generates a 6 digit PIN
+    new_pin = get_or_create_auth_token(force_new=True)
+    assert new_pin.isdigit()
+    assert len(new_pin) == 6
+    assert verify_pairing_token(new_pin) is True
 
 
 def test_pair_endpoint_success():

@@ -101,36 +101,52 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Handle pairing submit
-    if (pairingForm) {
-        pairingForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
+    // Submit pairing request with auto space/hyphen cleaning
+    async function pairWithPin(rawPin) {
+        if (!rawPin) return false;
+        if (pairingError) {
             pairingError.classList.add("visually-hidden");
             pairingError.textContent = "";
+        }
 
-            const pin = pairingPinInput.value.trim();
-            if (!pin) return;
+        // Clean spaces and hyphens commonly added by phone keyboards
+        const pin = rawPin.replace(/[\s\-]/g, "").trim();
+        if (!pin) return false;
 
-            try {
-                const res = await fetch("/api/auth/pair", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ pin })
-                });
+        try {
+            const res = await fetch("/api/auth/pair", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pin })
+            });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    setAuthenticated(true, data.csrf_token);
-                    pairingPinInput.value = "";
-                } else {
-                    const err = await res.json().catch(() => ({}));
+            if (res.ok) {
+                const data = await res.json();
+                setAuthenticated(true, data.csrf_token);
+                if (pairingPinInput) pairingPinInput.value = "";
+                return true;
+            } else {
+                const err = await res.json().catch(() => ({}));
+                if (pairingError) {
                     pairingError.textContent = err.detail || "Pairing failed. Check PIN.";
                     pairingError.classList.remove("visually-hidden");
                 }
-            } catch (err) {
+                return false;
+            }
+        } catch (err) {
+            if (pairingError) {
                 pairingError.textContent = "Could not reach server.";
                 pairingError.classList.remove("visually-hidden");
             }
+            return false;
+        }
+    }
+
+    // Handle pairing submit
+    if (pairingForm && pairingPinInput) {
+        pairingForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await pairWithPin(pairingPinInput.value);
         });
     }
 
@@ -532,5 +548,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialization
     checkStatus();
-    checkAuth();
+
+    // Check for PIN in URL parameter (e.g. from QR code scan)
+    const urlParams = new URLSearchParams(window.location.search);
+    const pinParam = urlParams.get("pin") || urlParams.get("pair") || urlParams.get("token");
+    if (pinParam) {
+        // Strip pin from address bar for security and clean display
+        try {
+            const cleanUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, cleanUrl);
+        } catch {}
+        pairWithPin(pinParam);
+    } else {
+        checkAuth();
+    }
 });
