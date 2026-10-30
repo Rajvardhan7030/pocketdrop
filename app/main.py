@@ -147,7 +147,6 @@ def main():
 
     # Print startup banner
     url = f"http://{bind_host}:{port}"
-    qr_url = f"http://{bind_host}:{port}/?pin={pin}"
 
     print("\n" + "=" * 55, flush=True)
     print("  PocketDrop — Local File & Text Sharing", flush=True)
@@ -158,16 +157,16 @@ def main():
     print("=" * 55, flush=True)
 
     if not args.no_qr:
-        print_terminal_qr(qr_url)
+        # QR encodes only the clean Access URL without secrets
+        print_terminal_qr(url)
 
     # Re-print access info after QR so it remains visible without scrolling
     print("=" * 55, flush=True)
     print(f"  Access URL:      {url}", flush=True)
     print(f"  Pairing PIN:     {pin}", flush=True)
     print("=" * 55, flush=True)
-    print("  Open the Access URL in your phone or PC browser.", flush=True)
-    print("  Enter the Pairing PIN above to authorize your device.", flush=True)
-    print("  (Tip: Phone camera scanning the QR code connects automatically!)", flush=True)
+    print("  1. Scan the QR code with your phone (or open the Access URL).", flush=True)
+    print("  2. Enter the 6-digit Pairing PIN above to authorize your device.", flush=True)
     print("  Both devices must be connected to the same home Wi-Fi.", flush=True)
     print("  Press Ctrl+C to stop the server at any time.", flush=True)
     print("=" * 55 + "\n", flush=True)
