@@ -141,10 +141,3 @@ Execute `./run.sh` in your terminal. PocketDrop displays the bound Wi-Fi URL, an
 
 ---
 
-## Documentation & Security
-
-- [`SECURITY.md`](SECURITY.md): Threat model, security matrix, and mandatory control checklist.
-- [`architecture.md`](.doc/architecture.md): Architectural design, security rules, and data model.
-- [`roadmap.md`](.doc/roadmap.md): Phased development milestones and acceptance criteria.
-- [`prompt.md`](.doc/prompt.md): Engineering standards and constraints.
-

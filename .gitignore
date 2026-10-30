@@ -28,4 +28,5 @@ data/
 # System & IDE files
 .DS_Store
 .idea/
-.vscode/
+.vscode
+.doc
