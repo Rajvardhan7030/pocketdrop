@@ -261,7 +261,6 @@ pytest -v
 
 ## 📚 Project Documentation
 
-- [`SECURITY.md`](SECURITY.md): Threat model, threat matrix, and security control verification.
 - [`docs/architecture.md`](docs/architecture.md): Architectural specifications and design rules.
 - [`docs/roadmap.md`](docs/roadmap.md): Milestone progress and completion criteria.
 - [`docs/prompt.md`](docs/prompt.md): Technical engineering standards and constraints.
