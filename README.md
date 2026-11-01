@@ -215,7 +215,7 @@ You can customize storage quotas and directories using environment variables:
 
 ```bash
 # Store uploads in custom folder
-export POCKETDROP_DATA_DIR="/home/raj/Downloads/pocketdrop_data"
+export POCKETDROP_DATA_DIR="/home/user/Downloads/pocketdrop_data"
 
 # Set max single file size to 1 GB (in bytes)
 export POCKETDROP_MAX_FILE_SIZE_BYTES=1073741824
