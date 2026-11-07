@@ -1,6 +1,6 @@
 # PocketDrop 📱💻
 
-**PocketDrop** is a lightweight, local-first file sharing and text transfer web application hosted on a Linux PC (optimized for Fedora). It allows mobile phones, tablets, or other computers on the same home Wi-Fi network to seamlessly transfer files and text snippets via a modern web browser—**with zero cloud accounts, no third-party internet dependencies, and no native phone apps required**.
+**PocketDrop** is a lightweight, local-first file sharing and text transfer web application hosted on a Linux PC or on a old smartphone. It allows mobile phones, tablets, or other computers on the same home Wi-Fi network to seamlessly transfer files and text snippets via a modern web browser—**with zero cloud accounts, no third-party internet dependencies, and no native phone apps required**.
 
 ---
 
