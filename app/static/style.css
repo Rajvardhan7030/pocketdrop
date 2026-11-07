@@ -57,7 +57,7 @@ body {
 }
 
 .header {
-    background-color: var(--card-bg);
+    background-color: White ;
     border-bottom: 1px solid var(--border-color);
     padding: 0.85rem 1rem;
     position: sticky;
@@ -74,13 +74,21 @@ body {
 }
 
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-img {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+}
+
+.logo-text {
     font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-}
-
-.logo span {
-    color: var(--primary-color);
 }
 
 .status-badge {

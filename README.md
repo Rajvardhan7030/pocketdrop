@@ -262,5 +262,3 @@ pytest -v
 ## 📚 Project Documentation
 
 - [`docs/architecture.md`](docs/architecture.md): Architectural specifications and design rules.
-- [`docs/roadmap.md`](docs/roadmap.md): Milestone progress and completion criteria.
-- [`docs/prompt.md`](docs/prompt.md): Technical engineering standards and constraints.
